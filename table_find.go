@@ -1,11 +1,11 @@
-// Copyright (c) 2023 thorstenrie.
+// Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
 // that can be found in the LICENSE file.
 package tstable
 
 // Import package tserr
 import (
-	"github.com/thorstenrie/tserr" // tserr
+	"github.com/thorsphere/tserr" // tserr
 )
 
 // find returns the index i of the column matching provided header h. It returns -1 and
@@ -16,7 +16,7 @@ func (t *Table) find(h string) (int, error) {
 		return -1, tserr.NilPtr()
 	}
 	// Return -1 and an error if header is nil or empty
-	if (t.header == nil) || (len(t.header) == 0) {
+	if len(t.header) == 0 {
 		return -1, tserr.Empty("header")
 	}
 	// Iterate all elements of header

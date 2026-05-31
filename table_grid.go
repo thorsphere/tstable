@@ -1,4 +1,4 @@
-// Copyright (c) 2023 thorstenrie.
+// Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
 // that can be found in the LICENSE file.
 package tstable
@@ -7,8 +7,8 @@ package tstable
 import (
 	"strings" // strings
 
-	"github.com/thorstenrie/tserr" // tserr
-	"github.com/thorstenrie/tsfio" // tsfio
+	"github.com/thorsphere/tserr" // tserr
+	"github.com/thorsphere/tsfio" // tsfio
 )
 
 // spaces returns the spaces as string for padding. It returns an empty string and an error, if any.
@@ -101,7 +101,7 @@ func (t *Table) h_rune(r int) (string, error) {
 	rmax := len(t.rows) + 1
 	// Return an empty string and an error if r is higher tham rmax
 	if r > rmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), HigherBound: int64(rmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), Want: int64(rmax)})
 	}
 	// Return the horizontal border grid line rune for the top line or the bottom line
 	if (r == 0) || (r == rmax) {
@@ -140,11 +140,11 @@ func (t *Table) hv_rune(r, c int) (string, error) {
 	cmax := len(t.header)
 	// Return an empty string and an error if r is higher than rmax
 	if r > rmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), HigherBound: int64(rmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), Want: int64(rmax)})
 	}
 	// Return an empty string and an error if c is higher than cmax
 	if c > cmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), HigherBound: int64(cmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), Want: int64(cmax)})
 	}
 	// First horizontal grid line
 	if r == 0 {
@@ -206,7 +206,7 @@ func (t *Table) vline(c int) (string, error) {
 	cmax := len(t.header)
 	// Return an empty string and an error if c is higher than cmax
 	if c > cmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), HigherBound: int64(cmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), Want: int64(cmax)})
 	}
 	// Set vertical grid line
 	v_rune := t.grid.Vi

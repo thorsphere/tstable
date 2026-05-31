@@ -1,4 +1,4 @@
-// Copyright (c) 2023 thorstenrie.
+// Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
 // that can be found in the LICENSE file.
 package tstable
@@ -7,7 +7,7 @@ package tstable
 import (
 	"sort" // sort
 
-	"github.com/thorstenrie/tserr" // tserr
+	"github.com/thorsphere/tserr" // tserr
 )
 
 // byRow implements sort.Interface fo Table based on

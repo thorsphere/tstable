@@ -1,9 +1,7 @@
-module github.com/thorstenrie/tstable
+module github.com/thorsphere/tstable
 
-go 1.21
+go 1.26
 
-toolchain go1.21.1
+require github.com/thorsphere/tserr v1.19.1
 
-require github.com/thorstenrie/tserr v1.12.0
-
-require github.com/thorstenrie/tsfio v1.4.0
+require github.com/thorsphere/tsfio v1.8.0

@@ -4,7 +4,7 @@
 // The string representation of a table is retrieved with Print. A table is sorted alphabetically by the
 // first column. It can be sorted by other columns with SortBy.
 //
-// Copyright (c) 2023 thorstenrie.
+// Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
 // that can be found in the LICENSE file.
 package tstable
@@ -15,8 +15,8 @@ import (
 	"unicode/utf8" // utf8
 
 	// lpstats
-	"github.com/thorstenrie/tserr" // tserr
-	"github.com/thorstenrie/tsfio" // tsfio
+	"github.com/thorsphere/tserr" // tserr
+	"github.com/thorsphere/tsfio" // tsfio
 )
 
 // Table holds the header of the table and all rows of the table. It also contains
@@ -36,7 +36,7 @@ type Table struct {
 // zero length or contains non-printable runes. The order of the header is fixed.
 func New(h []string) (*Table, error) {
 	// Return nil and an error if h is nil or h has zero length
-	if (h == nil) || (len(h) == 0) {
+	if len(h) == 0 {
 		return nil, tserr.Empty("header")
 	}
 	// Retrieve whether h contains only printable runes with IsPrintable
@@ -78,7 +78,7 @@ func (t *Table) AddRow(r []string) error {
 		return tserr.NilPtr()
 	}
 	// Return an error if r is nil or r is empty
-	if (r == nil) || (len(r) == 0) {
+	if len(r) == 0 {
 		return tserr.Empty("row")
 	}
 	// Return an error if the number of elements in r does not equal to the number of elements of the table header
@@ -242,7 +242,7 @@ func (t *Table) SortBy(h string) error {
 	if t == nil {
 		return tserr.NilPtr()
 	}
-	if (t.header == nil) || (len(t.header) == 0) {
+	if len(t.header) == 0 {
 		return tserr.Empty("header")
 	}
 	// Retrieve index i of column header h

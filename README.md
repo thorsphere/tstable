@@ -2,20 +2,20 @@
 Go package for tables with a simple API
 
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/thorstenrie/tstable)](https://goreportcard.com/report/github.com/thorstenrie/tstable)
-[![CodeFactor](https://www.codefactor.io/repository/github/thorstenrie/tstable/badge)](https://www.codefactor.io/repository/github/thorstenrie/tstable)
-![OSS Lifecycle](https://img.shields.io/osslifecycle/thorstenrie/tstable)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thorsphere/tstable)](https://goreportcard.com/report/github.com/thorsphere/tstable)
+[![CodeFactor](https://www.codefactor.io/repository/github/thorsphere/tstable/badge)](https://www.codefactor.io/repository/github/thorsphere/tstable)
+![OSS Lifecycle](https://img.shields.io/osslifecycle/thorsphere/tstable)
 
-[![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/thorstenrie/tstable)](https://pkg.go.dev/mod/github.com/thorstenrie/tstable)
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thorstenrie/tstable)
-![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/thorstenrie/tstable)
+[![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/thorsphere/tstable)](https://pkg.go.dev/mod/github.com/thorsphere/tstable)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thorsphere/tstable)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/thorsphere/tstable)
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/thorstenrie/tstable)
-![GitHub last commit](https://img.shields.io/github/last-commit/thorstenrie/tstable)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/thorstenrie/tstable)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thorstenrie/tstable)
-![GitHub Top Language](https://img.shields.io/github/languages/top/thorstenrie/tstable)
-![GitHub](https://img.shields.io/github/license/thorstenrie/tstable)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/thorsphere/tstable)
+![GitHub last commit](https://img.shields.io/github/last-commit/thorsphere/tstable)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/thorsphere/tstable)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thorsphere/tstable)
+![GitHub Top Language](https://img.shields.io/github/languages/top/thorsphere/tstable)
+![GitHub](https://img.shields.io/github/license/thorsphere/tstable)
 
 The Go package tstable provides a simple interface for tables. A new instance of a table can be retrieved with New and providing a table header. Table rows can be added
 with AddRow. The table visualization can be altered with SetGrid and SetPadding. The package provides a set of grids or a grid can be customized. The string representation of a table is retrieved with Print. A table is sorted alphabetically by the first column. It can be sorted by other columns with SortBy.
@@ -23,7 +23,7 @@ with AddRow. The table visualization can be altered with SetGrid and SetPadding.
 - **Simple**: Without configuration, just function calls
 - **Easy to use**: Just define the header of a table and add rows
 - **Tested**: Unit tests with high code coverage.
-- **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std), [tserr](https://github.com/thorstenrie/tserr), [lpstats](https://github.com/thorstenrie/lpstats) and [tsfio](https://github.com/thorstenrie/tsfio)
+- **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std), [tserr](https://github.com/thorsphere/tserr), [lpstats](https://github.com/thorsphere/lpstats) and [tsfio](https://github.com/thorsphere/tsfio)
 
 ````
 ┌─────────────────────┬────────────────────────────────┬────────────────┐
@@ -42,13 +42,13 @@ with AddRow. The table visualization can be altered with SetGrid and SetPadding.
 The package is installed with 
 
 ````go
-go get github.com/thorstenrie/tstable
+go get github.com/thorsphere/tstable
 ````
 
 In the Go app, the package is imported with
 
 ````go
-import "github.com/thorstenrie/tstable"
+import "github.com/thorsphere/tstable"
 ````
 
 ## Table grid
@@ -205,7 +205,7 @@ type Grid struct {
 | `Vb`   | cell_21  | `Hvb` | cell_22  | `Hvbr` |
 | `Hvbl` | `Hb`       | `Hvb` | `Hb`       | `Hvbr` |
 
-An example with a custom table grid is included in [example/example.go](https://github.com/thorstenrie/tstable/blob/main/example/example.go)
+An example with a custom table grid is included in [example/example.go](https://github.com/thorsphere/tstable/blob/main/example/example.go)
 
 ## Example
 
@@ -215,7 +215,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/thorstenrie/tstable"
+	"github.com/thorsphere/tstable"
 )
 
 var (
@@ -247,8 +247,8 @@ func main() {
 
 ## Links
 
-[Godoc](https://pkg.go.dev/github.com/thorstenrie/tstable)
+[Godoc](https://pkg.go.dev/github.com/thorsphere/tstable)
 
-[Go Report Card](https://goreportcard.com/report/github.com/thorstenrie/tstable)
+[Go Report Card](https://goreportcard.com/report/github.com/thorsphere/tstable)
 
-[Open Source Insights](https://deps.dev/go/github.com%2Fthorstenrie%2Ftstable)
+[Open Source Insights](https://deps.dev/go/github.com%2Fthorsphere%2Ftstable)

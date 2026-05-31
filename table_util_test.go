@@ -1,4 +1,4 @@
-// Copyright (c) 2023 thorstenrie.
+// Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
 // that can be found in the LICENSE file.
 package tstable_test
@@ -7,9 +7,9 @@ package tstable_test
 import (
 	"testing" // testing
 
-	"github.com/thorstenrie/tserr"   // tserr
-	"github.com/thorstenrie/tsfio"   // tsfio
-	"github.com/thorstenrie/tstable" // tstable
+	"github.com/thorsphere/tserr"   // tserr
+	"github.com/thorsphere/tsfio"   // tsfio
+	"github.com/thorsphere/tstable" // tstable
 )
 
 // Test table definition
