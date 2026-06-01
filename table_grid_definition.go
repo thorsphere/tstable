@@ -17,8 +17,8 @@ package tstable
 //	Hvb:	horizontal vertical bottom
 //	Hvtl:	horizontal vertical top left
 //	Hvbl:	horizontal vertical bottom left
-//	Hvtr:	horizontal vertcial top right
-//	Hvbr:	horizontal vertcial bottom right
+//	Hvtr:	horizontal vertical top right
+//	Hvbr:	horizontal vertical bottom right
 //
 // A table grid has an outside border. The header row is separated from the table rows by a horizontal grid line.
 // Table rows do not have a grid line between the rows. Columns are divided by an inside grid line.

@@ -1,8 +1,9 @@
-// Package tstable provides a simple interface for tables. A new instance of a table can be retrieved with
-// New and providing a table header. Table rows can be added with AddRow. The table visualization can be
-// altered with SetGrid and SetPadding. The package provides a set of grids or a grid can be customized.
-// The string representation of a table is retrieved with Print. A table is sorted alphabetically by the
-// first column. It can be sorted by other columns with SortBy.
+// Package tstable provides a simple interface for generating customizable ASCII tables.
+// Initialize a table using New with a slice of header strings, and append data using AddRow.
+// The visual output can be configured by modifying padding (SetPadding) and borders (SetGrid)
+// using either built-in presets or a custom Grid configuration.
+// Tables are automatically sorted alphabetically by the first column by default, which can 
+// be overridden via SortBy. The final text representation is generated using Print or String.
 //
 // Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
@@ -14,7 +15,6 @@ import (
 	"strings"      // strings
 	"unicode/utf8" // utf8
 
-	// lpstats
 	"github.com/thorsphere/tserr" // tserr
 	"github.com/thorsphere/tsfio" // tsfio
 )
@@ -133,106 +133,128 @@ func (t *Table) String() string {
 // The rows are sorted in alphabetical order according to the selected column with
 // SortBy. Per default, it is sorted by the first column.
 func (t *Table) Print() (string, error) {
-	// Initialize return value with an empty string
-	text := ""
 	// Return an empty string and an error, if t is nil
 	if t == nil {
-		return text, tserr.NilPtr()
+		return "", tserr.NilPtr()
 	}
 	// Return an empty string and an error, if header or rows are nil
 	if (t.header == nil) || (t.rows == nil) {
-		return text, tserr.NilPtr()
+		return "", tserr.NilPtr()
 	}
 	// Return an empty string and an error, if the number of elements in header does not equal the number of elements in width
 	if len(t.header) != len(t.width) {
-		return text, tserr.Equal(&tserr.EqualArgs{Var: "table width slice", Actual: int64(len(t.width)), Want: int64(len(t.header))})
-	}
-	// Retrieve spaces for padding
-	spaces, e := t.spaces()
-	// Return an empty string and an error, if spaces returns an error
-	if e != nil {
-		return text, tserr.Op(&tserr.OpArgs{Op: "spaces", Fn: "table", Err: e})
+		return "", tserr.Equal(&tserr.EqualArgs{Var: "table width slice", Actual: int64(len(t.width)), Want: int64(len(t.header))})
 	}
 	// Sort table by selected row, which is given by the row index in struct field key
 	if err := t.sort(); err != nil {
 		// Return an empty string and an error, if sorting fails
-		return text, tserr.Op(&tserr.OpArgs{Op: "sort", Fn: "table", Err: err})
+		return "", tserr.Op(&tserr.OpArgs{Op: "sort", Fn: "table", Err: err})
 	}
-	// Retrieve top horizontal grid line
-	hline, e := t.hline(0)
-	// Return an empty string and an error, if hline fails
-	if e != nil {
-		return text, tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+	// Use strings.Builder to build the return value as a string
+	var b strings.Builder
+	// Pre-calculate estimated capacity to minimize buffer array allocations
+	estRowLen := 1 // Account for newline
+	for _, w := range t.width {
+		estRowLen += w + (t.padding * 2) + 1
 	}
-	// Add top horizontal grid line to string
-	text += hline
-	// Print header
-	for i, h := range t.header {
-		// Return an empty string and an error, if the difference of width of column i and length of h is negative
-		if t.width[i]-len(h) < 0 {
-			return "", tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(t.width[i]), LowerBound: int64(len(h))})
-		}
-		// Retrieve top vertical grid line
-		vline, e := t.vline(i)
-		// Return an empty string and an error, if vline fails
-		if e != nil {
-			return "", tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
-		}
-		// Add header of column to return string
-		text += vline + spaces + h + strings.Repeat(" ", t.width[i]-len(h))
-	}
-	// Retrieve vertical grid line at the end of the header
-	vrline, e := t.vline(len(t.header))
-	// Return an empty string and an error, if vline fails
-	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
-	}
-	// Add vertical grid line at the end of the header to the return string
-	text += vrline + "\n"
-	// Retrieve horizontal grid line below header
-	hline, e = t.hline(1)
+	b.Grow(estRowLen * (len(t.rows) + 3)) // Allocating for rows, header, and separating grid lines
+	// Add top horizontal grid line to string builder
+	e := t.writeHLine(&b, 0)
 	// Return an empty string and an error, if hline fails
 	if e != nil {
 		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
 	}
-	// Add horizontal grid line to return string
-	text += hline
+	// Write the header row to the string builder
+	e = t.writeRow(&b, t.header)
+	// Return an empty string and an error, if printRow fails
+	if e != nil {
+		return "", tserr.Op(&tserr.OpArgs{Op: "printRow", Fn: "table", Err: e})
+	}
+	// dd horizontal grid line to return string
+	e = t.writeHLine(&b, 1)
+	// Return an empty string and an error, if hline fails
+	if e != nil {
+		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+	}
 	// Return string representation if the table does not have rows
 	if len(t.rows) == 0 {
-		return text, nil
+		return b.String(), nil
 	}
 	// Print rows
 	for _, r := range t.rows {
-		// Return an empty string and an error, if the size of row r is not equal to the size of width
-		if len(t.width) != len(r) {
-			return "", tserr.Higher(&tserr.HigherArgs{Var: "sizte of row", Actual: int64(len(r)), LowerBound: int64(len(t.width))})
+		// Write row r to the string builder
+		e := t.writeRow(&b, r)
+		// Return an empty string and an error, if printRow fails
+		if e != nil {
+			return "", tserr.Op(&tserr.OpArgs{Op: "printRow", Fn: "table", Err: e})
 		}
-		// Print row r
-		for j, c := range r {
-			// Return an empty string and an error, if the difference of width of column j and length of c is negative
-			if t.width[j]-len(c) < 0 {
-				return "", tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(t.width[j]), LowerBound: int64(len(c))})
-			}
-			// Retrieve top vertical grid line
-			vline, e := t.vline(j)
-			// Return an empty string and an error, if vline fails
-			if e != nil {
-				return text, tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
-			}
-			// Add cell c of row r to return string
-			text += vline + spaces + c + strings.Repeat(" ", t.width[j]-len(c))
-		}
-		// Add vertical grid line to return string and start new row
-		text += vrline + "\n"
-	}
-	// Retrieve bottom horizontal grid line
-	hline, e = t.hline(len(t.rows) + 1)
-	// Return an empty string and an error, if hline fails
-	if e != nil {
-		return text, tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
 	}
 	// Add horizontal grid line to return string
-	return text + hline, nil
+	e = t.writeHLine(&b, len(t.rows)+1)
+	// Return an empty string and an error, if hline fails
+	if e != nil {
+		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+	}
+	return b.String(), nil
+}
+
+func (t *Table) writeRow(b *strings.Builder, r []string) error {
+	// Return an error, if t is nil
+	if t == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error, if r is nil
+	if r == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error, if b is nil
+	if b == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error, if the number of elements in r does not equal the number of elements in the table header
+	if len(r) != len(t.header) {
+		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.header))})
+	}
+	// Return an error, if the number of elements in r does not equal the number of elements in width
+	if len(r) != len(t.width) {
+		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
+	}
+	// Retrieve spaces for padding
+	spaces, e := t.spaces()
+	// Return an error, if spaces returns an error
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "spaces", Fn: "table", Err: e})
+	}
+	vrline, e := t.vline(len(r))
+	// Return an error, if vline fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
+	}
+	// Iterate all elements of row r
+	for i, c := range r {
+		// Retrieve the number of runes in h
+		rc_c := utf8.RuneCountInString(c)
+		// Return an error, if the difference of width of column i and length of h is negative
+		if t.width[i]-rc_c < 0 {
+			return tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(t.width[i]), LowerBound: int64(rc_c)})
+		}
+		// Retrieve top vertical grid line
+		vline, e := t.vline(i)
+		// Return an error, if vline fails
+		if e != nil {
+			return tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
+		}
+		// Add header of column to return string
+		b.WriteString(vline)
+		b.WriteString(spaces)
+		b.WriteString(c)
+		b.WriteString(strings.Repeat(" ", t.width[i]-rc_c))
+	}
+	// Add vertical grid line to return string and start new row
+	b.WriteString(vrline)
+	b.WriteString("\n")
+	// Return nil to indicate success
+	return nil
 }
 
 // SortBy sets table t to be sorted by column header h. When printing the table, the table will be sorted by column with header h.
@@ -266,7 +288,7 @@ func (t *Table) SetPadding(p int) error {
 	}
 	// Return an error, if padding p is negative
 	if p < 0 {
-		return tserr.Higher(&tserr.HigherArgs{Var: "padding", Actual: int64(t.padding), LowerBound: 0})
+		return tserr.Higher(&tserr.HigherArgs{Var: "padding", Actual: int64(p), LowerBound: 0})
 	}
 	// Set table padding to p
 	t.padding = p

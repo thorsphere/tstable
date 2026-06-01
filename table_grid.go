@@ -27,58 +27,64 @@ func (t *Table) spaces() (string, error) {
 
 // hline returns a horizontal grid line (on top) of row with index r for table t as a string. It returns
 // an empty string and an error, if any.
-func (t *Table) hline(r int) (string, error) {
-	// Initialize return value as empty string
-	text := ""
-	// Return an empty string and an error if t is nil
+func (t *Table) writeHLine(b *strings.Builder, r int) error {
+	// Return an error if t is nil
 	if t == nil {
-		return text, tserr.NilPtr()
+		return tserr.NilPtr()
 	}
-	// Return an empty string and an error if width is nil
+	// Return an error if b is nil
+	if b == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error if width is nil
 	if t.width == nil {
-		return text, tserr.NilPtr()
+		return tserr.NilPtr()
 	}
-	// Return an empty string and an error if rows is nil
+	// Return an error if rows is nil
 	if t.rows == nil {
-		return "", tserr.NilPtr()
+		return tserr.NilPtr()
 	}
 	// Add initial padding to the horizontal line
 	spaces, e := t.spaces()
+	// Return an error if spaces fails
 	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "spaces", Fn: "table", Err: e})
+		return tserr.Op(&tserr.OpArgs{Op: "spaces", Fn: "table", Err: e})
 	}
-	text += spaces
+	// Retrieve the horizontal line rune
+	h, e := t.h_rune(r)
+	// Return an error if h_rune fails
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "h_rune", Fn: "table", Err: e})
+	}
+	// Add initial padding to the horizontal line
+	b.WriteString(spaces)
 	// Iterate width column by column
 	for i, w := range t.width {
-		// Return an empty string and an error if width is negative
+		// Return an error if width is negative
 		if w < 0 {
-			return "", tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(w), LowerBound: 0})
+			return tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(w), LowerBound: 0})
 		}
 		// Retrieve the horizontal vertical rune
 		hv, e := t.hv_rune(r, i)
-		// Return an empty string and an error if hv_rune fails
+		// Return an error if hv_rune fails
 		if e != nil {
-			return "", tserr.Op(&tserr.OpArgs{Op: "hv_rune", Fn: "table", Err: e})
-		}
-		// Retrieve the horizontal line rune
-		h, e := t.h_rune(r)
-		// Return an empty string and an error if h_rune fails
-		if e != nil {
-			return "", tserr.Op(&tserr.OpArgs{Op: "h_rune", Fn: "table", Err: e})
+			return tserr.Op(&tserr.OpArgs{Op: "hv_rune", Fn: "table", Err: e})
 		}
 		// Add a horizontal line runes for each column of the table
-		text += hv + strings.Repeat(h, t.padding+t.padding+w)
+		b.WriteString(hv)
+		b.WriteString(strings.Repeat(h, t.padding+t.padding+w))
 	}
 	// Retrieve the horizontal vertical rune at the end of the horizontal line
 	hv, e := t.hv_rune(r, len(t.header))
-	// Return an empty string and an error if hv_rune fails
+	// Return an error if hv_rune fails
 	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "hv_rune", Fn: "table", Err: e})
+		return tserr.Op(&tserr.OpArgs{Op: "hv_rune", Fn: "table", Err: e})
 	}
 	// End rune of the horizontal line
-	text += hv + "\n"
-	// Return the horizontal grid line and nil
-	return text, nil
+	b.WriteString(hv)
+	b.WriteString("\n")
+	// Return nil to indicate success
+	return nil
 }
 
 // h_rune returns the horizontal grid line rune for row r. The returned rune depends on whether
@@ -101,7 +107,7 @@ func (t *Table) h_rune(r int) (string, error) {
 	rmax := len(t.rows) + 1
 	// Return an empty string and an error if r is higher tham rmax
 	if r > rmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), Want: int64(rmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), HigherBound: int64(rmax)})
 	}
 	// Return the horizontal border grid line rune for the top line or the bottom line
 	if (r == 0) || (r == rmax) {
@@ -122,7 +128,7 @@ func (t *Table) hv_rune(r, c int) (string, error) {
 	if r < 0 {
 		return "", tserr.Higher(&tserr.HigherArgs{Var: "row index", Actual: int64(r), LowerBound: 0})
 	}
-	// Return an empty string and an error fi c is negative
+	// Return an empty string and an error if c is negative
 	if c < 0 {
 		return "", tserr.Higher(&tserr.HigherArgs{Var: "column index", Actual: int64(c), LowerBound: 0})
 	}
@@ -140,11 +146,11 @@ func (t *Table) hv_rune(r, c int) (string, error) {
 	cmax := len(t.header)
 	// Return an empty string and an error if r is higher than rmax
 	if r > rmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), Want: int64(rmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "row index", Actual: int64(r), HigherBound: int64(rmax)})
 	}
 	// Return an empty string and an error if c is higher than cmax
 	if c > cmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), Want: int64(cmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), HigherBound: int64(cmax)})
 	}
 	// First horizontal grid line
 	if r == 0 {
@@ -192,7 +198,7 @@ func (t *Table) vline(c int) (string, error) {
 	}
 	// Return an empty string and an error if c is negative
 	if c < 0 {
-		return "", tserr.Higher(&tserr.HigherArgs{Var: "row index", Actual: int64(c), LowerBound: 0})
+		return "", tserr.Higher(&tserr.HigherArgs{Var: "column index", Actual: int64(c), LowerBound: 0})
 	}
 	// Return an empty string and an error if header is nil
 	if t.header == nil {
@@ -206,7 +212,7 @@ func (t *Table) vline(c int) (string, error) {
 	cmax := len(t.header)
 	// Return an empty string and an error if c is higher than cmax
 	if c > cmax {
-		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), Want: int64(cmax)})
+		return "", tserr.Lower(&tserr.LowerArgs{Var: "column index", Actual: int64(c), HigherBound: int64(cmax)})
 	}
 	// Set vertical grid line
 	v_rune := t.grid.Vi
@@ -215,5 +221,8 @@ func (t *Table) vline(c int) (string, error) {
 		v_rune = t.grid.Vb
 	}
 	// Return vertical grid line with padding and nil
-	return spaces + tsfio.RuneToPrintable(v_rune), nil
+	var b strings.Builder
+	b.WriteString(spaces)
+	b.WriteString(tsfio.RuneToPrintable(v_rune))
+	return b.String(), nil
 }
