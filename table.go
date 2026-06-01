@@ -56,7 +56,7 @@ func New(h []string) (*Table, error) {
 		header:  h,                   // set header
 		rows:    make([][]string, 0), // allocate and initialize rows
 		width:   make([]int, len(h)), // allocate and initialize width
-		key:     0,                   // set sort key to first column
+		key:     -1,                   // set sort key to -1 (no sorting)
 	}
 	// Iterate over elements of h
 	for i, c := range h {

@@ -5,7 +5,7 @@ package tstable
 
 // Import Go standard packages and tserr
 import (
-	"sort" // sort
+	"sort"    // sort
 	"strings" // strings
 
 	"github.com/thorsphere/tserr" // tserr
@@ -17,6 +17,10 @@ func (t *Table) sort() error {
 	// Return error in case t is nil
 	if t == nil {
 		return tserr.NilPtr()
+	}
+	// Return nil if sorting is disabled (key < 0)
+	if t.key < 0 {
+		return nil
 	}
 	// Return nil in case rows is nil, because there are no rows to sort
 	if t.rows == nil {
