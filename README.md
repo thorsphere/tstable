@@ -242,7 +242,7 @@ func main() {
 }
 
 ````
-[Go Playground](https://go.dev/play/p/XsuobSpC0Di)
+[Go Playground](https://go.dev/play/p/_9-ZmlEVPDS)
 
 ## Links
 
