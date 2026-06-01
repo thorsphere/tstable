@@ -1,7 +1,6 @@
 # tstable
 Go package for tables with a simple API
 
-
 [![Go Report Card](https://goreportcard.com/badge/github.com/thorsphere/tstable)](https://goreportcard.com/report/github.com/thorsphere/tstable)
 [![CodeFactor](https://www.codefactor.io/repository/github/thorsphere/tstable/badge)](https://www.codefactor.io/repository/github/thorsphere/tstable)
 ![OSS Lifecycle](https://img.shields.io/osslifecycle/thorsphere/tstable)
@@ -17,13 +16,12 @@ Go package for tables with a simple API
 ![GitHub Top Language](https://img.shields.io/github/languages/top/thorsphere/tstable)
 ![GitHub](https://img.shields.io/github/license/thorsphere/tstable)
 
-The Go package tstable provides a simple interface for tables. A new instance of a table can be retrieved with New and providing a table header. Table rows can be added
-with AddRow. The table visualization can be altered with SetGrid and SetPadding. The package provides a set of grids or a grid can be customized. The string representation of a table is retrieved with Print. A table is sorted alphabetically by the first column. It can be sorted by other columns with SortBy.
+The Go package `tstable` provides a simple interface for generating customizable ASCII tables. Initialize a table using `New` with a slice of header strings, and append data using `AddRow`. The visual output can be configured by modifying padding (`SetPadding`) and borders (`SetGrid`) using either built-in presets or a custom `Grid` configuration. Tables are automatically sorted alphabetically by the first column by default, which can be overridden via `SortBy`. The final text representation is generated using `Print` or `String()`.
 
 - **Simple**: Without configuration, just function calls
 - **Easy to use**: Just define the header of a table and add rows
 - **Tested**: Unit tests with high code coverage.
-- **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std), [tserr](https://github.com/thorsphere/tserr), [lpstats](https://github.com/thorsphere/lpstats) and [tsfio](https://github.com/thorsphere/tsfio)
+- **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std), [tserr](https://github.com/thorsphere/tserr) and [tsfio](https://github.com/thorsphere/tsfio)
 
 ````
 ┌─────────────────────┬────────────────────────────────┬────────────────┐
@@ -199,10 +197,10 @@ type Grid struct {
 
 | `Hvtl` | `Hb`       | `Hvt` | `Hb`       | `Hvtr` |
 |------|----------|-----|----------|------|
-| `Vb`   | header_1 | `vi`  | header_2 | `Vb`   |
+| `Vb`   | header_1 | `Vi`  | header_2 | `Vb`   |
 | `Hvl`  | `Hi`       | `Hvi` | `Hi`       | `Hvr`  |
-| `Vb`   | cell_11  | `Vi`  | cell_21  | `Vb`   |
-| `Vb`   | cell_21  | `Hvb` | cell_22  | `Hvbr` |
+| `Vb`   | cell_11  | `Vi`  | cell_12  | `Vb`   |
+| `Vb`   | cell_21  | `Vi` | cell_22  | `Vb` |
 | `Hvbl` | `Hb`       | `Hvb` | `Hb`       | `Hvbr` |
 
 An example with a custom table grid is included in [example/example.go](https://github.com/thorsphere/tstable/blob/main/example/example.go)
@@ -235,6 +233,7 @@ func main() {
 	for _, r := range rows {
 		tbl.AddRow(r)
 	}
+	tbl.SortBy(sortby)
 	for n, g := range tstable.AllGrids {
 		tbl.SetGrid(g)
 		fmt.Println(n)
