@@ -83,11 +83,11 @@ func (t *Table) AddRow(r []string) error {
 	}
 	// Return an error if the number of elements in r does not equal to the number of elements of the table header
 	if len(r) != len(t.header) {
-		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.header))})
+		return tserr.EqualInt(&tserr.EqualIntArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.header))})
 	}
 	// Return an error if the number of elements in r does not equal to the number of elements of width
 	if len(r) != len(t.width) {
-		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
+		return tserr.EqualInt(&tserr.EqualIntArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
 	}
 	// Retrieve in p whether r only contains printable runes
 	p, e := tsfio.IsPrintable(r)
@@ -143,7 +143,7 @@ func (t *Table) Print() (string, error) {
 	}
 	// Return an empty string and an error, if the number of elements in header does not equal the number of elements in width
 	if len(t.header) != len(t.width) {
-		return "", tserr.Equal(&tserr.EqualArgs{Var: "table width slice", Actual: int64(len(t.width)), Want: int64(len(t.header))})
+		return "", tserr.EqualInt(&tserr.EqualIntArgs{Var: "table width slice", Actual: int64(len(t.width)), Want: int64(len(t.header))})
 	}
 	// Sort table by selected row, which is given by the row index in struct field key
 	if err := t.sort(); err != nil {
@@ -213,11 +213,11 @@ func (t *Table) writeRow(b *strings.Builder, r []string) error {
 	}
 	// Return an error, if the number of elements in r does not equal the number of elements in the table header
 	if len(r) != len(t.header) {
-		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.header))})
+		return tserr.EqualInt(&tserr.EqualIntArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.header))})
 	}
 	// Return an error, if the number of elements in r does not equal the number of elements in width
 	if len(r) != len(t.width) {
-		return tserr.Equal(&tserr.EqualArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
+		return tserr.EqualInt(&tserr.EqualIntArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
 	}
 	// Retrieve spaces for padding
 	spaces, e := t.spaces()
