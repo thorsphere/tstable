@@ -256,3 +256,207 @@ func TestNilGrid(t *testing.T) {
 		t.Error(tserr.NilFailed("SetGrid"))
 	}
 }
+
+// TestAddRowNil tests AddRow to return an error in case the provided table is nil. The test fails
+// if AddRow returns a nil error.
+func TestAddRowNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Add nil row
+	if e := tbl.AddRow(gandalf); e == nil {
+		// The test fails if AddRow returns a nil error
+		t.Error(tserr.NilFailed("AddRow"))
+	}
+}
+
+// TestAddRowWidth tests AddRow to return an error in case the provided row has a different number of
+// elements than the table header. The test fails if AddRow returns a nil error.
+func TestAddRowWidth(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Add row to the table that has a different number of elements than the table header
+	if e := tbl.AddRow(gandalf[:len(gandalf)-1]); e == nil {
+		// The test fails if AddRow returns a nil error
+		t.Error(tserr.NilFailed("AddRow"))
+	}
+}
+
+// TestStringNil tests String to return an error in case the provided table is nil. The test fails
+// if String returns a nil error.
+func TestStringNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// String nil table
+	if e := fmt.Sprint(tbl); e != tserr.NilPtr().Error() {
+		// The test fails if String returns a nil error
+		t.Error(tserr.NilFailed("String"))
+	}
+}
+
+// TestPrintNil tests Print to return an error in case the provided table is nil. The test fails
+// if Print returns a nil error.
+func TestPrintNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Print nil table
+	if _, e := tbl.Print(); e == nil {
+		// The test fails if Print returns a nil error
+		t.Error(tserr.NilFailed("Print"))
+	}
+}
+
+// TestPrintEmptyHeader tests Print to return an error in case the provided table has an empty header. The test fails
+// if Print returns a nil error.
+func TestPrintEmptyHeader(t *testing.T) {
+	// Retrieve test table
+	tbl := &tstable.Table{}
+	// Print empty header table
+	if _, e := tbl.Print(); e == nil {
+		// The test fails if Print returns a nil error
+		t.Error(tserr.NilFailed("Print"))
+	}
+}
+
+// TestSortByNil tests SortBy to return an error in case the provided table is nil. The test fails
+// if SortBy returns a nil error.
+func TestSortByNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Sort by nil column
+	if e := tbl.SortBy(""); e == nil {
+		// The test fails if SortBy returns a nil error
+		t.Error(tserr.NilFailed("SortBy"))
+	}
+}
+
+// TestSortByEmptyHeader tests SortBy to return an error in case the provided column header is empty. The test fails
+// if SortBy returns a nil error.
+func TestSortByEmptyHeader(t *testing.T) {
+	// Retrieve test table
+	var tbl *tstable.Table = new(tstable.Table)
+	// Sort by empty column
+	if e := tbl.SortBy(""); e == nil {
+		// The test fails if SortBy returns a nil error
+		t.Error(tserr.NilFailed("SortBy"))
+	}
+}
+
+// TestSetMultilineNil tests SetMultiline to return an error in case the provided table is nil. The test fails
+// if SetMultiline returns a nil error.
+func TestSetMultilineNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Set multiline nil table
+	if e := tbl.SetMultiline(""); e == nil {
+		// The test fails if SetMultiline returns a nil error
+		t.Error(tserr.NilFailed("SetMultiline"))
+	}
+}
+
+// TestSetMultilineEmptyHeader tests SetMultiline to return an error in case the provided column header is empty.
+// The test fails if SetMultiline returns a nil error.
+func TestSetMultilineEmptyHeader(t *testing.T) {
+	// Retrieve test table
+	var tbl *tstable.Table = new(tstable.Table)
+	// Set multiline empty header table
+	if e := tbl.SetMultiline(""); e == nil {
+		// The test fails if SetMultiline returns a nil error
+		t.Error(tserr.NilFailed("SetMultiline"))
+	}
+}
+
+// TestSetPaddingNil tests SetPadding to return an error in case the provided table is nil. The test fails
+// if SetPadding returns a nil error.
+func TestSetPaddingNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Set padding nil table
+	if e := tbl.SetPadding(1); e == nil {
+		// The test fails if SetPadding returns a nil error
+		t.Error(tserr.NilFailed("SetPadding"))
+	}
+}
+
+// TestSetGridNil tests SetGrid to return an error in case the provided table is nil. The test fails
+// if SetGrid returns a nil error.
+func TestSetGridNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Set grid nil table
+	if e := tbl.SetGrid(&tstable.DoubleBorderGrid); e == nil {
+		// The test fails if SetGrid returns a nil error
+		t.Error(tserr.NilFailed("SetGrid"))
+	}
+}
+
+// TestSetMultilineNil tests SetMultiline to return an error in case the provided table is nil. The test fails
+// if SetMultiline returns a nil error.
+func TestSetMultilineWidthNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Set multiline width nil table
+	if e := tbl.SetMultilineWidth(15); e == nil {
+		// The test fails if SetMultilineWidth returns a nil error
+		t.Error(tserr.NilFailed("SetMultilineWidth"))
+	}
+}
+
+// TestSetMultilineWidthNegative tests SetMultilineWidth to return an error in case the provided width is negative.
+// The test fails if SetMultilineWidth returns a nil error.
+func TestSetMultilineWidthNegative(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Set multiline width to a negative value
+	if e := tbl.SetMultilineWidth(-1); e == nil {
+		// The test fails if SetMultilineWidth returns a nil error
+		t.Error(tserr.NilFailed("SetMultilineWidth"))
+	}
+}
+
+// TestSetMultilineWidth tests SetMultilineWidth to return nil to indicate success. The test fails
+// if SetMultilineWidth returns an error.
+func TestSetMultilineWidth(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Set multiline width
+	if e := tbl.SetMultilineWidth(15); e != nil {
+		// The test fails if SetMultilineWidth returns a nil error
+		t.Error(tserr.NilExpected("SetMultilineWidth"))
+	}
+}
+
+// TestSetMultilineWrongColumn tests SetMultiline to return an error in case the provided column header is wrong.
+// The test fails if SetMultiline returns a nil error.
+func TestSetMultilineWrongColumn(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Set multiline to a column which does not exist
+	if e := tbl.SetMultiline("Wrong"); e == nil {
+		// The test fails if SetMultiline returns a nil error
+		t.Error(tserr.NilFailed("SetMultiline"))
+	}
+}
+
+// TestSetMultiline tests SetMultiline to return nil to indicate success. The test fails
+// if SetMultiline returns an error.
+func TestSetMultiline(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Set multiline to a column which does not exist
+	if e := tbl.SetMultiline("Title"); e != nil {
+		// The test fails if SetMultiline returns a nil error
+		t.Error(tserr.NilExpected("SetMultiline"))
+	}
+	evalTable("SimpleGridMultiline", tbl, t)
+}
+
+func TestSetMultilineLong(t *testing.T) {
+	// Retrieve test table
+	tbl := testMultilineTable(t)
+	// Set multiline to a column which does not exist
+	if e := tbl.SetMultiline("Quote"); e != nil {
+		// The test fails if SetMultiline returns a nil error
+		t.Error(tserr.NilExpected("SetMultiline"))
+	}
+	evalTable("SimpleGridMultilineLong", tbl, t)
+}

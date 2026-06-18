@@ -2,8 +2,10 @@
 // Initialize a table using New with a slice of header strings, and append data using AddRow.
 // The visual output can be configured by modifying padding (SetPadding) and borders (SetGrid)
 // using either built-in presets or a custom Grid configuration.
-// Tables are automatically sorted alphabetically by the first column by default, which can 
-// be overridden via SortBy. The final text representation is generated using Print or String.
+// Tables are automatically sorted alphabetically by the first column by default, which can
+// be overridden via SortBy. Specific columns can be configured for multi-line text wrapping
+// using SetMultiline and the maximum width for wrapped lines can be set with SetMultilineWidth.
+// The final text representation is generated using Print or String.
 //
 // Copyright (c) 2023-2026 thorsphere.
 // All Rights Reserved. Use is governed with GNU Affero General Public License v3.0
@@ -23,12 +25,14 @@ import (
 // information on the width of each column, the row index for sorting, padding and the table grid.
 // Per default, a table has padding 2, a simple grid and is sorted by its first row.
 type Table struct {
-	header  []string   // Header as a slice of strings
-	rows    [][]string // Rows as a slice of slices of strings
-	width   []int      // Width of each row
-	key     int        // Row index for sorting (default first column)
-	padding int        // Padding (default 2)
-	grid    *Grid      // Table grid
+	header    []string   // Header as a slice of strings
+	rows      [][]string // Rows as a slice of slices of strings
+	width     []int      // Width of each row
+	multiline []bool     // Whether a row contains multiple lines
+	key       int        // Row index for sorting (default first column)
+	padding   int        // Padding (default 2)
+	mlwidth   int        // Maximum width of multiline columns
+	grid      *Grid      // Table grid
 }
 
 // New returns a pointer to a new Table. It expects the header of the table
@@ -51,12 +55,14 @@ func New(h []string) (*Table, error) {
 	}
 	// Retrieve a new instance of struct Table
 	t := &Table{
-		padding: 2,                   // default padding
-		grid:    &SimpleGrid,         // with a simple table grid
-		header:  h,                   // set header
-		rows:    make([][]string, 0), // allocate and initialize rows
-		width:   make([]int, len(h)), // allocate and initialize width
-		key:     -1,                   // set sort key to -1 (no sorting)
+		padding:   2,                    // default padding
+		mlwidth:   20,                   // default maximum width of multiline columns
+		grid:      &SimpleGrid,          // with a simple table grid
+		header:    h,                    // set header
+		rows:      make([][]string, 0),  // allocate and initialize rows
+		width:     make([]int, len(h)),  // allocate and initialize width
+		multiline: make([]bool, len(h)), // allocate and initialize multiline
+		key:       -1,                   // set sort key to -1 (no sorting)
 	}
 	// Iterate over elements of h
 	for i, c := range h {
@@ -165,7 +171,7 @@ func (t *Table) Print() (string, error) {
 		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
 	}
 	// Write the header row to the string builder
-	e = t.writeRow(&b, t.header)
+	e = t.writeMultiRow(&b, t.header)
 	// Return an empty string and an error, if printRow fails
 	if e != nil {
 		return "", tserr.Op(&tserr.OpArgs{Op: "printRow", Fn: "table", Err: e})
@@ -183,7 +189,7 @@ func (t *Table) Print() (string, error) {
 	// Print rows
 	for _, r := range t.rows {
 		// Write row r to the string builder
-		e := t.writeRow(&b, r)
+		e := t.writeMultiRow(&b, r)
 		// Return an empty string and an error, if printRow fails
 		if e != nil {
 			return "", tserr.Op(&tserr.OpArgs{Op: "printRow", Fn: "table", Err: e})
@@ -198,7 +204,8 @@ func (t *Table) Print() (string, error) {
 	return b.String(), nil
 }
 
-func (t *Table) writeRow(b *strings.Builder, r []string) error {
+// writeRow writes a row to a string builder
+func (t *Table) writeMultiRow(b *strings.Builder, r []string) error {
 	// Return an error, if t is nil
 	if t == nil {
 		return tserr.NilPtr()
@@ -219,40 +226,87 @@ func (t *Table) writeRow(b *strings.Builder, r []string) error {
 	if len(r) != len(t.width) {
 		return tserr.EqualInt(&tserr.EqualIntArgs{Var: "row", Actual: int64(len(r)), Want: int64(len(t.width))})
 	}
+	// Define type colLines to hold a slice of strings
+	type colLines []string
+	// Create a slice of colLines to hold the wrapped lines of each column
+	columns := make([]colLines, len(r))
+	// Maximum number of lines in any column
+	maxLines := 0
+	// Iterate over columns
+	for i, cell := range r {
+		// Wrap cell in columns[i] if multiline
+		if t.multiline[i] && t.width[i] > 0 {
+			// Wrap cell in columns[i]
+			columns[i] = wrapText(cell, t.mlwidth)
+		} else { // Otherwise, add cell to columns[i]
+			// Add cell to columns[i]
+			columns[i] = []string{cell}
+		}
+		// Update maxLines if column i has more lines than maxLines
+		if len(columns[i]) > maxLines {
+			// Update maxLines
+			maxLines = len(columns[i])
+		}
+	}
 	// Retrieve spaces for padding
 	spaces, e := t.spaces()
 	// Return an error, if spaces returns an error
 	if e != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "spaces", Fn: "table", Err: e})
 	}
+	// Retrieve vertical grid line
 	vrline, e := t.vline(len(r))
 	// Return an error, if vline fails
 	if e != nil {
 		return tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
 	}
-	// Iterate all elements of row r
-	for i, c := range r {
-		// Retrieve the number of runes in h
-		rc_c := utf8.RuneCountInString(c)
-		// Return an error, if the difference of width of column i and length of h is negative
-		if t.width[i]-rc_c < 0 {
-			return tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(t.width[i]), LowerBound: int64(rc_c)})
+	// Iterate all lines of row r
+	for l := 0; l < maxLines; l++ {
+		// Iterate all elements of row r
+		for i := range r {
+			// Retrieve top vertical grid line
+			vline, e := t.vline(i)
+			// Return an error, if vline fails
+			if e != nil {
+				return tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
+			}
+			// Add vertical grid line to return string and start new line
+			b.WriteString(vline)
+			// Add padding to return string
+			b.WriteString(spaces)
+			// Retrieve text of line l
+			lineText := ""
+			// If line l is within bounds of columns[i]
+			if l < len(columns[i]) {
+				// Retrieve text of line l
+				lineText = columns[i][l]
+			}
+			// Add line text to return string
+			b.WriteString(lineText)
+			// Calculate cell width
+			cellWidth := 0
+			// If column i is multiline
+			if t.multiline[i] {
+				// Set cell width to multiline width
+				cellWidth = t.mlwidth
+			} else { // Otherwise, set cell width to width of column i
+				// Set cell width to width of column i
+				cellWidth = t.width[i]
+			}
+			// Calculate padding
+			padRunes := cellWidth - utf8.RuneCountInString(lineText)
+			// Return an error, if padding is negative
+			if padRunes < 0 {
+				tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(cellWidth), LowerBound: int64(utf8.RuneCountInString(lineText))})
+			}
+			// Add padding to return string
+			b.WriteString(strings.Repeat(" ", padRunes))
 		}
-		// Retrieve top vertical grid line
-		vline, e := t.vline(i)
-		// Return an error, if vline fails
-		if e != nil {
-			return tserr.Op(&tserr.OpArgs{Op: "vline", Fn: "table", Err: e})
-		}
-		// Add header of column to return string
-		b.WriteString(vline)
-		b.WriteString(spaces)
-		b.WriteString(c)
-		b.WriteString(strings.Repeat(" ", t.width[i]-rc_c))
+		// Add vertical grid line to return string and start new row
+		b.WriteString(vrline)
+		// Add newline to return string
+		b.WriteByte('\n')
 	}
-	// Add vertical grid line to return string and start new row
-	b.WriteString(vrline)
-	b.WriteString("\n")
 	// Return nil to indicate success
 	return nil
 }
@@ -279,6 +333,98 @@ func (t *Table) SortBy(h string) error {
 	return nil
 }
 
+// SetMultiline marks specific columns for multi-line wrapping. Each string in `cols` should match
+// a column header; those columns will then wrap long text to the next line when printed.
+// Columns not specified are left unchanged.
+func (t *Table) SetMultiline(h string) error {
+	// Return an error, if t is bil
+	if t == nil {
+		return tserr.NilPtr()
+	}
+	if len(t.header) == 0 {
+		return tserr.Empty("header")
+	}
+	// Retrieve index i of column header h
+	i, e := t.find(h)
+	// Return an error, if find returns an error
+	if e != nil {
+		return tserr.Op(&tserr.OpArgs{Op: "find", Fn: h, Err: e})
+	}
+	// Set multiline to true for column i
+	t.multiline[i] = true
+	// Return nil to indicate success
+	return nil
+}
+
+// wrapText splits s into lines of at most maxRunes runes, breaking at word
+// boundaries when possible. If a single word exceeds maxRunes, it is
+// forcibly broken.
+func wrapText(s string, maxRunes int) []string {
+	// Return empty slice if s is empty
+	if s == "" {
+		return []string{""}
+	}
+	// Return single line if maxRunes is zero or negative
+	if maxRunes <= 0 {
+		return []string{s}
+	}
+	// Split s into lines
+	var lines []string
+	// Split s into words
+	words := strings.Fields(s)
+	// Return single line if no words
+	if len(words) == 0 {
+		return []string{s}
+	}
+	// Build current line
+	var current strings.Builder
+	// Rune count of current line (without spaces)
+	currentLen := 0
+	// Iterate over words
+	for i, w := range words {
+		// Rune count of word w
+		wLen := utf8.RuneCountInString(w)
+		if currentLen+1+wLen <= maxRunes {
+			// Add space if not first word
+			if i != 0 {
+				// Add space
+				current.WriteByte(' ')
+			}
+			// Word fits on current line, add it
+			current.WriteString(w)
+			// Rune count of current line
+			currentLen += 1 + wLen
+		} else {
+			// Word does not fit on current line, start new line
+			lines = append(lines, current.String())
+			// Reset current line
+			current.Reset()
+			// If word w is too long, break it
+			if wLen+1 > maxRunes {
+				// Split w into lines
+				for wLen+1 > maxRunes {
+					// Append first maxRunes runes of w to lines
+					lines = append(lines, w[:maxRunes])
+					// Remove first maxRunes runes of w
+					w = w[maxRunes:]
+					// Rune count of remaining of w
+					wLen = utf8.RuneCountInString(w)
+				}
+			}
+			// Append w to current line
+			current.WriteString(w)
+			// Rune count of current line (without spaces)
+			currentLen = wLen
+		}
+	}
+	// Append remaining text to current line
+	if current.Len() > 0 {
+		lines = append(lines, current.String())
+	}
+	// Return lines
+	return lines
+}
+
 // SetPadding sets the table padding to p. The default padding of a new table is 2. Padding p defines the number
 // of spaces between the cell grid edges and the cell content. It returns an error if p is negative.
 func (t *Table) SetPadding(p int) error {
@@ -296,10 +442,31 @@ func (t *Table) SetPadding(p int) error {
 	return nil
 }
 
+// SetMultilineWidth sets the multiline width of table t.
+// The default multiline width is 20. It returns an error if w is negative.
+func (t *Table) SetMultilineWidth(w int) error {
+	// Return an error, if t is nil
+	if t == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error, if w is negative
+	if w <= 0 {
+		return tserr.Higher(&tserr.HigherArgs{Var: "width", Actual: int64(w), LowerBound: 0})
+	}
+	// Set table multiline width to w
+	t.mlwidth = w
+	// Return nil
+	return nil
+}
+
 // SetGrid sets the grid for table t when printed. Per default, a new table has a simple grid enabled.
 func (t *Table) SetGrid(g *Grid) error {
-	// Return an error if t or g is nil
-	if (t == nil) || (g == nil) {
+	// Return an error if t is nil
+	if t == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error if g is nil
+	if g == nil {
 		return tserr.NilPtr()
 	}
 	// Set table grid to g

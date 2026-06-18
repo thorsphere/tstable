@@ -16,10 +16,11 @@ Go package for tables with a simple API
 ![GitHub Top Language](https://img.shields.io/github/languages/top/thorsphere/tstable)
 ![GitHub](https://img.shields.io/github/license/thorsphere/tstable)
 
-The Go package `tstable` provides a simple interface for generating customizable ASCII tables. Initialize a table using `New` with a slice of header strings, and append data using `AddRow`. The visual output can be configured by modifying padding (`SetPadding`) and borders (`SetGrid`) using either built-in presets or a custom `Grid` configuration. Tables are automatically sorted alphabetically by the first column by default, which can be overridden via `SortBy`. The final text representation is generated using `Print` or `String()`.
+The Go package `tstable` provides a simple interface for generating customizable ASCII tables. Initialize a table using `New` with a slice of header strings, and append data using `AddRow`. The visual output can be configured by modifying padding (`SetPadding`) and borders (`SetGrid`) using either built-in presets or a custom `Grid` configuration. Specific columns can be configured for multi-line text wrapping using `SetMultiline` and the maximum width for wrapped lines can be set with `SetMultilineWidth`. Tables are automatically sorted alphabetically by the first column by default, which can be overridden via `SortBy`. The final text representation is generated using `Print` or `String()`.
 
 - **Simple**: Without configuration, just function calls
 - **Easy to use**: Just define the header of a table and add rows
+- **Multiline support**: Configure columns for automatic text wrapping
 - **Tested**: Unit tests with high code coverage.
 - **Dependencies**: Only depends on the [Go Standard Library](https://pkg.go.dev/std), [tserr](https://github.com/thorsphere/tserr) and [tsfio](https://github.com/thorsphere/tsfio)
 
@@ -205,6 +206,28 @@ type Grid struct {
 
 An example with a custom table grid is included in [example/example.go](https://github.com/thorsphere/tstable/blob/main/example/example.go)
 
+## Multiline Columns
+
+By default, all columns display content in a single line. However, you can mark specific columns for multi-line text wrapping. This is useful for columns that contain long descriptions or text that should wrap to multiple lines.
+
+Use `SetMultiline` to mark a column for multi-line wrapping by providing its header string:
+
+```go
+tbl.SetMultiline("Description")
+```
+
+The maximum width for wrapped lines can be set with `SetMultilineWidth`:
+
+```go
+tbl.SetMultilineWidth(30) // Default is 20 characters
+```
+
+When a column is marked for multiline wrapping:
+- Long text is split into multiple lines at word boundaries when possible
+- If a single word exceeds the maximum width, it's forcibly broken
+- The table automatically adjusts row heights to accommodate wrapped content
+- All other columns maintain their single-line format
+
 ## Example
 
 ````go
@@ -234,6 +257,8 @@ func main() {
 		tbl.AddRow(r)
 	}
 	tbl.SortBy(sortby)
+	tbl.SetMultiline("Title")
+	tbl.SetMultilineWidth(15)
 	for n, g := range tstable.AllGrids {
 		tbl.SetGrid(g)
 		fmt.Println(n)
@@ -243,6 +268,8 @@ func main() {
 
 ````
 [Go Playground](https://go.dev/play/p/_9-ZmlEVPDS)
+
+This produces a table where the "Description" column wraps long text into multiple lines while other columns maintain single-line format.
 
 ## Links
 

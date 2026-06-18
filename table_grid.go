@@ -70,6 +70,11 @@ func (t *Table) writeHLine(b *strings.Builder, r int) error {
 		if e != nil {
 			return tserr.Op(&tserr.OpArgs{Op: "hv_rune", Fn: "table", Err: e})
 		}
+		// Set width of column i to multiline width if multiline
+		if t.multiline[i] {
+			// Set multiline width
+			w = t.mlwidth
+		}
 		// Add a horizontal line runes for each column of the table
 		b.WriteString(hv)
 		b.WriteString(strings.Repeat(h, t.padding+t.padding+w))
