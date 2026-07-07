@@ -217,6 +217,80 @@ func TestTableStringer(t *testing.T) {
 	}
 }
 
+// TestTablePrint tests the implementation of Print for a Table. The test fails if the string representation
+// of the test table does not equal the contents of the test data golden file.
+func TestSeparator(t *testing.T) {
+	// Set name of test table
+	n := "Separator"
+	// Set name of grid
+	g := "SimpleGrid"
+	// Retrieve test table
+	tbl := testTableSeparator(t)
+	// Retrieve Grid for name
+	grid, ok := tstable.AllGrids[g]
+	// The test fails if Grid is not found
+	if !ok {
+		t.Fatal(tserr.NotExistent(g))
+	}
+	// Set the Grid
+	if e := tbl.SetGrid(grid); e != nil {
+		// The test fails if SetGrid returns an error
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "SetGrid", Fn: "table", Err: e}))
+	}
+	// Sprintln table
+	s := fmt.Sprint(tbl)
+	e := tsfio.EvalGoldenFile(&tsfio.Testcase{Name: n, Data: s})
+	// The test fails if the retrieved string representation of the test table does not equal to the contents of the test data golden file
+	if e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "EvalGoldenFile", Fn: n, Err: e}))
+	}
+	// Try to sort the table though it has a separator, which is not allowed.
+	// The test fails if SortBy does not return an error.
+	if e := tbl.SortBy(sortby); e == nil {
+		t.Error(tserr.NilFailed("SortBy"))
+	}
+}
+
+// TestSeparatorNil tests AddSeparator to return an error in case the provided table is nil. The test fails
+// if AddSeparator returns a nil error.
+func TestSeparatorNil(t *testing.T) {
+	// Table is nil
+	var tbl *tstable.Table = nil
+	// Add separator to nil table
+	if e := tbl.AddSeparator(); e == nil {
+		// The test fails if AddSeparator returns a nil error
+		t.Error(tserr.NilFailed("AddSeparator"))
+	}
+}
+
+// TestSeparatorNoRows tests AddSeparator to return an error in case the provided table has no rows.
+// The test fails if AddSeparator returns a nil error.
+func TestSeparatorNoRows(t *testing.T) {
+	// Create test table with test header
+	tbl, e := tstable.New(header)
+	// The test fails, if NewTable returns an error
+	if e != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "NewTable", Fn: "table", Err: e}))
+	}
+	// Add a separator to the table though it has no rows, which is not allowed.
+	// The test fails if AddSeparator does not return an error.
+	if e := tbl.AddSeparator(); e == nil {
+		t.Error(tserr.NilFailed("AddSeparator"))
+	}
+}
+
+// TestSeparatorSorted tests that adding a separator to a sorted table is not allowed. The test fails
+// if AddSeparator does not return an error.
+func TestSeparatorSorted(t *testing.T) {
+	// Retrieve test table
+	tbl := testTable(t)
+	// Try to add a separator to the table though it is sorted, which is not allowed.
+	// The test fails if AddSeparator does not return an error.
+	if e := tbl.AddSeparator(); e == nil {
+		t.Error(tserr.NilFailed("AddSeparator"))
+	}
+}
+
 // TestNonPrintableHeader tests NewTable to return an error in case the provided header contains non-printable runes.
 // The test fails if NewTable returns a nil error.
 func TestNonPrintableHeader(t *testing.T) {

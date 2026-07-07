@@ -84,6 +84,50 @@ func testTable(t *testing.T) *tstable.Table {
 	return tbl
 }
 
+func testTableSeparator(t *testing.T) *tstable.Table {
+	// Panic if t is nil
+	if t == nil {
+		panic(tserr.NilPtr())
+	}
+	// Create test table with test header
+	tbl, e := tstable.New(header)
+	// The test fails, if NewTable returns an error
+	if e != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "NewTable", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(gandalf); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(aragorn); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Add a separator to the test table
+	if e := tbl.AddSeparator(); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddSeparator", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(legolas); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(gimli); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Set padding of the test table
+	if e := tbl.SetPadding(padding); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "SetPadding", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(boromir); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Return the test table
+	return tbl
+}
+
+// testMultilineTable creates the test table with multiline columns and returns a pointer to the test table.
 func testMultilineTable(t *testing.T) *tstable.Table {
 	// Panic if t is nil
 	if t == nil {

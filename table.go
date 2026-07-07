@@ -25,14 +25,15 @@ import (
 // information on the width of each column, the row index for sorting, padding and the table grid.
 // Per default, a table has padding 2, a simple grid and is sorted by its first row.
 type Table struct {
-	header    []string   // Header as a slice of strings
-	rows      [][]string // Rows as a slice of slices of strings
-	width     []int      // Width of each row
-	multiline []bool     // Whether a row contains multiple lines
-	key       int        // Row index for sorting (default first column)
-	padding   int        // Padding (default 2)
-	mlwidth   int        // Maximum width of multiline columns
-	grid      *Grid      // Table grid
+	header     []string     // Header as a slice of strings
+	rows       [][]string   // Rows as a slice of slices of strings
+	width      []int        // Width of each row
+	multiline  []bool       // Whether a row contains multiple lines
+	separators map[int]bool // Map of row indices that should have a separator line after them
+	key        int          // Row index for sorting (default first column)
+	padding    int          // Padding (default 2)
+	mlwidth    int          // Maximum width of multiline columns
+	grid       *Grid        // Table grid
 }
 
 // New returns a pointer to a new Table. It expects the header of the table
@@ -55,14 +56,15 @@ func New(h []string) (*Table, error) {
 	}
 	// Retrieve a new instance of struct Table
 	t := &Table{
-		padding:   2,                    // default padding
-		mlwidth:   20,                   // default maximum width of multiline columns
-		grid:      &SimpleGrid,          // with a simple table grid
-		header:    h,                    // set header
-		rows:      make([][]string, 0),  // allocate and initialize rows
-		width:     make([]int, len(h)),  // allocate and initialize width
-		multiline: make([]bool, len(h)), // allocate and initialize multiline
-		key:       -1,                   // set sort key to -1 (no sorting)
+		padding:    2,                    // default padding
+		mlwidth:    20,                   // default maximum width of multiline columns
+		grid:       &SimpleGrid,          // with a simple table grid
+		header:     h,                    // set header
+		rows:       make([][]string, 0),  // allocate and initialize rows
+		width:      make([]int, len(h)),  // allocate and initialize width
+		multiline:  make([]bool, len(h)), // allocate and initialize multiline
+		separators: make(map[int]bool),   // allocate and initialize separators
+		key:        -1,                   // set sort key to -1 (no sorting)
 	}
 	// Iterate over elements of h
 	for i, c := range h {
@@ -163,12 +165,12 @@ func (t *Table) Print() (string, error) {
 	for _, w := range t.width {
 		estRowLen += w + (t.padding * 2) + 1
 	}
-	b.Grow(estRowLen * (len(t.rows) + 3)) // Allocating for rows, header, and separating grid lines
+	b.Grow(estRowLen * (len(t.rows) + len(t.separators) + 3)) // Allocating for rows, header, and separating grid lines
 	// Add top horizontal grid line to string builder
 	e := t.writeHLine(&b, 0)
 	// Return an empty string and an error, if hline fails
 	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+		return "", tserr.Op(&tserr.OpArgs{Op: "writeHLine", Fn: "table", Err: e})
 	}
 	// Write the header row to the string builder
 	e = t.writeMultiRow(&b, t.header)
@@ -180,26 +182,35 @@ func (t *Table) Print() (string, error) {
 	e = t.writeHLine(&b, 1)
 	// Return an empty string and an error, if hline fails
 	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+		return "", tserr.Op(&tserr.OpArgs{Op: "writeHLine", Fn: "table", Err: e})
 	}
 	// Return string representation if the table does not have rows
 	if len(t.rows) == 0 {
 		return b.String(), nil
 	}
 	// Print rows
-	for _, r := range t.rows {
+	for i, r := range t.rows {
 		// Write row r to the string builder
 		e := t.writeMultiRow(&b, r)
 		// Return an empty string and an error, if printRow fails
 		if e != nil {
 			return "", tserr.Op(&tserr.OpArgs{Op: "printRow", Fn: "table", Err: e})
 		}
+		// Write separator line after this row if configured
+		if t.separators[i] {
+			// Add horizontal grid line to return string
+			e = t.writeHLine(&b, i+2) // +2 because row 0 of data is at position 2 (after top border and header section)
+			// Return an empty string and an error, if hline fails
+			if e != nil {
+				return "", tserr.Op(&tserr.OpArgs{Op: "writeHLine", Fn: "table", Err: e})
+			}
+		}
 	}
 	// Add horizontal grid line to return string
 	e = t.writeHLine(&b, len(t.rows)+1)
 	// Return an empty string and an error, if hline fails
 	if e != nil {
-		return "", tserr.Op(&tserr.OpArgs{Op: "hline", Fn: "table", Err: e})
+		return "", tserr.Op(&tserr.OpArgs{Op: "writeHLine", Fn: "table", Err: e})
 	}
 	return b.String(), nil
 }
@@ -320,6 +331,10 @@ func (t *Table) SortBy(h string) error {
 	}
 	if len(t.header) == 0 {
 		return tserr.Empty("header")
+	}
+	// Return error in case t has separator(s), because sorting is not allowed for tables with separator(s)
+	if len(t.separators) > 0 {
+		return tserr.MethodNotAllowed(&tserr.MethodNotAllowedArgs{Method: "SortBy", Resource: "table with separator(s)"})
 	}
 	// Retrieve index i of column header h
 	i, e := t.find(h)
@@ -472,5 +487,27 @@ func (t *Table) SetGrid(g *Grid) error {
 	// Set table grid to g
 	t.grid = g
 	// Return nil
+	return nil
+}
+
+// AddSeparator adds a horizontal separator line after the most recently added row.
+// It returns an error if t is nil or if no rows have been added yet.
+func (t *Table) AddSeparator() error {
+	// Return an error if t is nil
+	if t == nil {
+		return tserr.NilPtr()
+	}
+	// Return an error if sorting is enabled, because adding separators is not allowed for sorted tables
+	if t.key >= 0 {
+		// Return an error if sorting is enabled, because adding separators is not allowed for sorted tables
+		return tserr.MethodNotAllowed(&tserr.MethodNotAllowedArgs{Method: "AddSeparator", Resource: "sorted table"})
+	}
+	// Return an error if no rows have been added yet
+	if len(t.rows) == 0 {
+		return tserr.Empty("rows")
+	}
+	// Add a separator after the last row
+	t.separators[len(t.rows)-1] = true
+	// Return nil to indicate success
 	return nil
 }

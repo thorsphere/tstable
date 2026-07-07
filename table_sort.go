@@ -26,6 +26,10 @@ func (t *Table) sort() error {
 	if t.rows == nil {
 		return nil
 	}
+	// Return nil in case t has separator(s), because sorting is not allowed for tables with separator(s)
+	if len(t.separators) > 0 {
+		return nil
+	}
 	// Sort Table t by the selected row using sort.Slice
 	sort.Slice(t.rows, func(i, j int) bool {
 		// Return false in case i or j is equal or greater than the number of rows
