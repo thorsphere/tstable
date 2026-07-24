@@ -1,17 +1,13 @@
 # tstable
+
 Go package for tables with a simple API
 
 [![PkgGoDev](https://pkg.go.dev/badge/mod/github.com/thorsphere/tstable)](https://pkg.go.dev/mod/github.com/thorsphere/tstable)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/thorsphere/tstable)
-![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/thorsphere/tstable)
-![OSS Lifecycle](https://img.shields.io/osslifecycle/thorsphere/tstable)
-
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/thorsphere/tstable)
-![GitHub last commit](https://img.shields.io/github/last-commit/thorsphere/tstable)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/thorsphere/tstable)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thorsphere/tstable)
 ![GitHub Top Language](https://img.shields.io/github/languages/top/thorsphere/tstable)
-![GitHub](https://img.shields.io/github/license/thorsphere/tstable)
+[![CodeFactor](https://www.codefactor.io/repository/github/thorsphere/tstable/badge)](https://www.codefactor.io/repository/github/thorsphere/tstable)
+![OSS Lifecycle](https://img.shields.io/osslifecycle/thorsphere/tstable)
 
 The Go package `tstable` provides a simple interface for generating customizable ASCII tables. Initialize a table using `New` with a slice of header strings, and append data using `AddRow`. The visual output can be configured by modifying padding (`SetPadding`) and borders (`SetGrid`) using either built-in presets or a custom `Grid` configuration. Specific columns can be configured for multi-line text wrapping using `SetMultiline` and the maximum width for wrapped lines can be set with `SetMultilineWidth`. Horizontal separator lines can be inserted between rows using `AddSeparator`. Tables are not sorted by default, which can be overridden via `SortBy`. The final text representation is generated using `Print` or `String()`.
 
@@ -282,8 +278,28 @@ func main() {
 
 This produces a table where the "Description" column wraps long text into multiple lines while other columns maintain single-line format.
 
-## Links
+## Documentation & Resources
 
-[Godoc](https://pkg.go.dev/github.com/thorsphere/tstable)
+- [Go Package Documentation](https://pkg.go.dev/github.com/thorsphere/tstable) — Complete API reference
+- [Open Source Insights](https://deps.dev/go/github.com%2Fthorsphere%2Ftstable) — Dependency analysis
 
-[Open Source Insights](https://deps.dev/go/github.com%2Fthorsphere%2Ftstable)
+## ⚖️ License & Commercial Usage
+
+Copyright (c) 2023-2026 thorsphere. All rights reserved.
+
+This project is licensed under the **Functional Source License v1.1 (FSL-1.1-ALv2)**. 
+
+* The use, modification, and redistribution of this Go package is completely free for private, educational, non-commercial, and internal purposes. 
+* If you are a company or institution looking to use this package in a commercial product, service, or business environment, you must secure a commercial license.
+* Each version of this software automatically converts to the fully open-source Apache License, Version 2.0 on the second anniversary of its release.
+
+For full details, please see the [LICENSE](LICENSE) file.
+
+### 💼 Commercial Licensing & Inquiries
+
+To purchase a commercial license or discuss support options, please reach out directly:
+
+* 📩 **Contact:** business at thorsphere dot com
+* 💬 **Response Time:** Usually within a couple of business days.
+
+*Please include your company name and a brief overview of your use case so I can provide the right licensing details.*
