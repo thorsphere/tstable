@@ -410,8 +410,11 @@ func wrapText(s string, maxRunes int) []string {
 			// Rune count of current line
 			currentLen += 1 + wLen
 		} else {
-			// Word does not fit on current line, start new line
-			lines = append(lines, current.String())
+			// If current line has content, append it to lines
+			if current.Len() > 0 {
+				// Word does not fit on current line, start new line
+				lines = append(lines, current.String())
+			}
 			// Reset current line
 			current.Reset()
 			// If word w is too long, break it

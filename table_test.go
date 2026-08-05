@@ -521,7 +521,15 @@ func TestSetMultiline(t *testing.T) {
 		// The test fails if SetMultiline returns a nil error
 		t.Error(tserr.NilExpected("SetMultiline"))
 	}
+	// Evaluate test table
 	evalTable("SimpleGridMultiline", tbl, t)
+}
+
+func TestSetUuid(t *testing.T) {
+	// Retrieve test table
+	tbl := testUuidTable(t)
+	// Evaluate test table
+	evalTable("SimpleGridUuid", tbl, t)
 }
 
 func TestSetMultilineLong(t *testing.T) {
@@ -532,5 +540,6 @@ func TestSetMultilineLong(t *testing.T) {
 		// The test fails if SetMultiline returns a nil error
 		t.Error(tserr.NilExpected("SetMultiline"))
 	}
+	// Evaluate test table
 	evalTable("SimpleGridMultilineLong", tbl, t)
 }

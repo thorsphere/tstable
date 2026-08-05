@@ -14,12 +14,14 @@ import (
 
 // Test table definition
 var (
-	header  = []string{"Fellowship member", "Title", "Weapon"}           // Test table header
-	gandalf = []string{"Gandalf", "The Grey", "Wizard staff"}            // Test table row
-	aragorn = []string{"Aragorn", "King of Gondor", "Sword"}             // Test table row
-	legolas = []string{"Legolas", "Prince of the Woodland Realm", "Bow"} // Test table row
-	gimli   = []string{"Gimli", "Lord of the Glittering Caves", "Axe"}   // Test table row
-	boromir = []string{"Boromir", "Captain of the White Tower", "Sword"} // Test table row
+	header    = []string{"Fellowship member", "Title", "Weapon"}              // Test table header
+	gandalf   = []string{"Gandalf", "The Grey", "Wizard staff"}               // Test table row
+	aragorn   = []string{"Aragorn", "King of Gondor", "Sword"}                // Test table row
+	legolas   = []string{"Legolas", "Prince of the Woodland Realm", "Bow"}    // Test table row
+	gimli     = []string{"Gimli", "Lord of the Glittering Caves", "Axe"}      // Test table row
+	boromir   = []string{"Boromir", "Captain of the White Tower", "Sword"}    // Test table row
+	uuid_head = []string{"UUID", "Version 4"}                                 // Test table row
+	uuid_val  = []string{"Example 1", "246e8179-8647-4d85-b5b8-a860603a1cbf"} // Test table row
 )
 
 // Test constants
@@ -173,6 +175,34 @@ func testMultilineTable(t *testing.T) *tstable.Table {
 	}
 	// Set multiline width of the test table
 	if e := tbl.SetMultilineWidth(50); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "SetMultilineWidth", Fn: "table", Err: e}))
+	}
+	// Return the test table
+	return tbl
+}
+
+// testUuidTable creates the test table with UUID columns and returns a pointer to the test table.
+func testUuidTable(t *testing.T) *tstable.Table {
+	// Panic if t is nil
+	if t == nil {
+		panic(tserr.NilPtr())
+	}
+	// Create test table with test header
+	tbl, e := tstable.New(uuid_head)
+	// The test fails, if NewTable returns an error
+	if e != nil {
+		t.Fatal(tserr.Op(&tserr.OpArgs{Op: "NewTable", Fn: "table", Err: e}))
+	}
+	// Add a row to the test table
+	if e := tbl.AddRow(uuid_val); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "AddRow", Fn: "table", Err: e}))
+	}
+	// Set multiline columns
+	if e := tbl.SetMultiline("Version 4"); e != nil {
+		t.Error(tserr.Op(&tserr.OpArgs{Op: "SetMultiline", Fn: "table", Err: e}))
+	}
+	// Set multiline width of the test table
+	if e := tbl.SetMultilineWidth(20); e != nil {
 		t.Error(tserr.Op(&tserr.OpArgs{Op: "SetMultilineWidth", Fn: "table", Err: e}))
 	}
 	// Return the test table
